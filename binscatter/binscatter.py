@@ -15,6 +15,7 @@ numpy2ri.activate()
 pandas2ri.activate()
 
 binsreg = importr("binsreg")
+grdevices = importr('grDevices')
 
 
 def unwrap(robject, depth=1):
@@ -331,6 +332,7 @@ def binscatterplot(
         ci_args=ci_args,
         raw=raw,
     )
+    grdevices.dev_off()
 
     return ax
 
