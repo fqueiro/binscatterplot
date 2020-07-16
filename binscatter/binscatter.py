@@ -86,21 +86,10 @@ def binsplot(
     ci_args=dict(),
     poly_args=dict(),
 ):
-    if color is None:
-        lines, = ax.plot(0, 0)
-        color = lines.get_color()
-        lines.remove()
-    else:
-        color = color
 
     dots = data_dict["data.dots"]
-    sc = ax.scatter(dots["x"], dots["fit"], color=color, label=label, **scatter_args)
-
-    y_min = dots["fit"].min()
-    y_max = dots["fit"].max()
-
-    x_min = dots["x"].min()
-    x_max = dots["x"].max()
+    sc = ax.plot(dots["x"], dots["fit"], ls='', color=color, label=label, **scatter_args)
+    color = sc[-1].get_color()
 
     if "data.ci" in data_dict:
         ci = data_dict["data.ci"]
@@ -117,15 +106,6 @@ def binsplot(
             **ci_args,
         )
 
-        y_min = min(
-            y_min,
-            ci.loc[(ci["x"] < x_max) & (ci["x"] > x_min), ["ci.l", "ci.r"]].min().min(),
-        )
-        y_max = max(
-            y_max,
-            ci.loc[(ci["x"] < x_max) & (ci["x"] > x_min), ["ci.l", "ci.r"]].max().max(),
-        )
-
     if "data.line" in data_dict:
         line = data_dict["data.line"]
         if truncate:
@@ -135,7 +115,7 @@ def binsplot(
                 line["x"].values,
                 line["fit"].values,
                 color=color,
-                lw=mpl.rcParams["lines.linewidth"] * 1.5,
+                lw=mpl.rcParams["lines.linewidth"],
                 **line_args,
             )
 
@@ -148,14 +128,6 @@ def binsplot(
             color=color,
             alpha=0.15,
         )
-        y_min = min(
-            y_min,
-            cb.loc[(cb["x"] < x_max) & (cb["x"] > x_min), ["cb.l", "cb.r"]].min().min(),
-        )
-        y_max = max(
-            y_max,
-            cb.loc[(cb["x"] < x_max) & (cb["x"] > x_min), ["cb.l", "cb.r"]].max().max(),
-        )
 
     if "data.poly" in data_dict:
         poly = data_dict["data.poly"]
@@ -165,7 +137,7 @@ def binsplot(
             poly["x"].values,
             poly["fit"].values,
             color=color,
-            lw=mpl.rcParams["lines.linewidth"] * 1.5,
+            lw=mpl.rcParams["lines.linewidth"],
             **poly_args,
         )
 
@@ -181,10 +153,6 @@ def binsplot(
             alpha=0.15,
         )
 
-    y_room = (y_max - y_min) * 0.1
-    x_room = (x_max - x_min) * 0.1
-    ax.set_ylim(bottom=y_min - y_room, top=y_max + y_room)
-    ax.set_xlim(left=x_min - x_room, right=x_max + x_room)
     return ax
 
 
@@ -234,6 +202,7 @@ class _BinnedRegressionPlotter(_LinearPlotter):
         self,
         ax,
         truncate=False,
+        label=None,
         legend_args=dict(frameon=False),
         scatter_args=dict(),
         line_args=dict(),
@@ -269,10 +238,11 @@ class _BinnedRegressionPlotter(_LinearPlotter):
             if len(self.data_plot) > 1:
                 label = grp[6:]
             else:
-                label = None
+                label = label
             binsplot(
                 self.data_plot[grp],
                 ax=ax,
+                color=self.color,
                 truncate=truncate,
                 label=label,
                 scatter_args=scatter_args,
@@ -313,6 +283,7 @@ def binscatterplot(
     ax: plt.Axes = None,
     color: str = None,
     truncate: bool = False,
+    label = None,
     legend_args: dict = dict(frameon=False),
     scatter_args: dict = dict(),
     line_args: dict = dict(),
@@ -352,6 +323,7 @@ def binscatterplot(
     ax = plotter.plot(
         ax,
         truncate=truncate,
+        label = label,
         legend_args=legend_args,
         scatter_args=scatter_args,
         line_args=line_args,
